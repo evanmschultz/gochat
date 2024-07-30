@@ -3,17 +3,26 @@ package main
 import (
 	"gochat/database"
 	"gochat/routes"
+
+	"github.com/gin-gonic/gin"
 )
 
-/*
-main initializes the database connection and sets up the router.
-
-Creates a connection to the database and initializes the router with the database connection.
-Runs the router on port 8080.
-*/
 func main() {
-	db := database.InitDB("test.db")
+    db := database.InitDB("test.db")
 
-	r := routes.SetupRouter(db)
-	r.Run(":8080")
+    router := routes.SetupRouter(db)
+
+    // Load HTML templates
+    router.LoadHTMLGlob("frontend/templates/*")
+
+    // Serve static files
+    router.Static("/static", "./frontend/static")
+
+    // Serve index.html as the main entry point
+    router.GET("/", func(c *gin.Context) {
+        c.File("./frontend/templates/index.html")
+    })
+
+    // Start the server on port 8080
+    router.Run(":8080")
 }

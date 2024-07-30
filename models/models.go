@@ -7,7 +7,6 @@ import (
 // User represents a user in the database
 type User struct {
 	gorm.Model
-	// Username is unique
 	Username string `json:"username" gorm:"unique"`
 	Password string `json:"password"`
 }
@@ -16,7 +15,6 @@ type User struct {
 type Chat struct {
 	gorm.Model
 	UserID   uint      `json:"user_id"`
-	// Messages are deleted when the chat is deleted
 	Messages []Message `json:"messages" gorm:"constraint:OnDelete:CASCADE;"`
 }
 

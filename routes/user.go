@@ -1,71 +1,63 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-
-	"gochat/models"
-	"gochat/database"
 )
 
-// AddUserRoutes sets up the routes for user registration and login
-func AddUserRoutes(r *gin.Engine, db *gorm.DB) {
-	r.POST("/user/register", func(c *gin.Context) { registerUser(c, db) })
-	r.POST("/user/login", func(c *gin.Context) { loginUser(c, db) })
+func AddUserRoutes(router *gin.Engine, db *gorm.DB) {
+    // router.GET("/user/register", renderRegisterForm)
+    // router.POST("/user/register", func(context *gin.Context) { registerUser(context, db) })
+    // router.GET("/user/login", renderLoginForm)
+    // router.POST("/user/login", func(context *gin.Context) { loginUser(context, db) })
 }
 
-/*
-registerUser handles user registration.
+// func renderRegisterForm(c *gin.Context) {
+//     c.HTML(http.StatusOK, "register.html", nil)
+// }
 
-Takes a JSON object with a username and password and binds it to a User struct, then saves it to the database.
-Returns a status message: "registered" if successful, "Invalid input" if input is invalid, "User already exists" if username is taken, or "Failed to register user" if there is an error.
+// func renderLoginForm(c *gin.Context) {
+//     c.HTML(http.StatusOK, "login.html", nil)
+// }
 
-Example request body:
-{
-	"username": "testuser",
-	"password": "password"
-}
-*/
-func registerUser(c *gin.Context, db *gorm.DB) {
-	var user models.User
-	if err := c.BindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
+// func registerUser(context *gin.Context, db *gorm.DB) {
+//     var user models.User
+//     if err := context.ShouldBind(&user); err != nil {
+//         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+//         return
+//     }
 
-	if err := database.RegisterUser(db, &user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+//     if err := database.RegisterUser(db, &user); err != nil {
+//         context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+//         return
+//     }
 
-	c.JSON(http.StatusOK, gin.H{"status": "registered"})
-}
+//     context.JSON(http.StatusOK, gin.H{"status": "registered"})
+// }
 
-/*
-loginUser handles user login.
+// func loginUser(context *gin.Context, db *gorm.DB) {
+//     var user models.User
+//     if err := context.ShouldBind(&user); err != nil {
+//         log.Printf("Invalid input: %v", err)
+//         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+//         return
+//     }
 
-Takes a JSON object with a username and password and binds it to a User struct, then verifies the user credentials.
-Returns a status message: "logged in" if successful, "Invalid input" if input is invalid, "Invalid credentials" if the username or password is incorrect.
+//     log.Printf("Attempting login for user: %s", user.Username)
+//     if err := database.LoginUser(db, &user); err != nil {
+//         log.Printf("Invalid credentials for user %s: %v", user.Username, err)
+//         context.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+//         return
+//     }
 
-Example request body:
-{
-	"username": "testuser",
-	"password": "password"
-}
-*/
-func loginUser(c *gin.Context, db *gorm.DB) {
-	var user models.User
-	if err := c.BindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
+//     session := sessions.Default(context)
+//     session.Set("userID", user.ID)
+//     session.Save()
 
-	if err := database.LoginUser(db, &user); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
+//     log.Printf("User logged in: %+v", user)
 
-	c.JSON(http.StatusOK, gin.H{"status": "logged in"})
-}
+//     context.JSON(http.StatusOK, gin.H{
+//         "username": user.Username,
+//         "userID":   user.ID,
+//     })
+// }

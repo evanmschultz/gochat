@@ -11,96 +11,91 @@ import (
 	"gorm.io/gorm"
 )
 
-// AddMessageRoutes sets up the routes for sending, editing, and deleting messages.
-func AddMessageRoutes(r *gin.Engine, db *gorm.DB) {
-	r.POST("/chat/:chat_id/message", func(c *gin.Context) { sendMessage(c, db) })
-	r.PUT("/chat/:chat_id/message/:message_id", func(c *gin.Context) { editMessage(c, db) })
+func AddMessageRoutes(router *gin.Engine, db *gorm.DB) {
+    router.POST("/chat/:chat_id/message", func(context *gin.Context) { sendMessage(context, db) })
+    router.PUT("/chat/:chat_id/message/:message_id", func(context *gin.Context) { editMessage(context, db) })
 }
 
-/*
-sendMessage handles sending a message to a chat.
+func sendMessage(context *gin.Context, db *gorm.DB) {
+    chatID, err := strconv.Atoi(context.Param("chat_id"))
+    if err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
+        return
+    }
 
-Takes a JSON object with a message, binds it to a Message struct, and adds it to the chat's message history in the database.
-Returns a status message: "message sent" and the message ID if successful, "Chat not found" if the chat does not exist, "Invalid input" if input is invalid.
+    var message models.Message
+    if err := context.ShouldBindJSON(&message); err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
 
-Example request body:
-{
-	"message": "Hello, world!"
-}
-*/
-func sendMessage(c *gin.Context, db *gorm.DB) {
-	chatID, err := strconv.Atoi(c.Param("chat_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
-		return
-	}
+    message.ChatID = uint(chatID)
+    message.UserID = 1 // Hardcoding userID for testing
+    if err := database.AddMessage(db, uint(chatID), &message); err != nil {
+        context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	var message models.Message
-	if err := c.BindJSON(&message); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
+    // Hardcoded AI response
+    aiResponse := models.Message{
+        ChatID:  uint(chatID),
+        UserID:  2, // Assuming AI has userID 2
+        Message: "This is a hardcoded AI response.",
+    }
+    if err := database.AddMessage(db, uint(chatID), &aiResponse); err != nil {
+        context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	if err := database.AddMessage(db, uint(chatID), &message); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    // Fetch updated chat history
+    chat, err := database.GetChat(db, uint(chatID))
+    if err != nil {
+        context.JSON(http.StatusNotFound, gin.H{"error": "Chat not found"})
+        return
+    }
 
-	// Mock AI response
-	aiResponse := "This is a response from the AI."
-	c.JSON(http.StatusOK, gin.H{
-		"status":      "message sent",
-		"userMessage": message.Message,
-		"aiResponse":  aiResponse,
-		"messageID":   message.ID,
-	})
-}
+    var chatHistoryHTML string
+    for _, message := range chat.Messages {
+        chatHistoryHTML += `<div>` + message.Message + `</div>`
+    }
 
-/*
-editMessage handles editing a specific message in a chat.
-
-Takes the message_id from the URL parameters and a JSON object with the new message content.
-Returns a status message: "message edited" if successful, "Invalid input" if input is invalid.
-
-Example request body:
-{
-	"message": "Hello, edited message!"
-}
-*/
-func editMessage(c *gin.Context, db *gorm.DB) {
-	messageID, err := strconv.Atoi(c.Param("message_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
-		return
-	}
-
-	chatID, err := strconv.Atoi(c.Param("chat_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
-		return
-	}
-
-	newMessage, err := bindMessage(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
-
-	if err := database.UpdateMessage(db, uint(chatID), uint(messageID), newMessage.Message); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status":     "message edited",
-		"messageID":  messageID,
-		"newMessage": newMessage.Message,
-	})
+    context.Header("Content-Type", "text/html")
+    context.String(http.StatusOK, chatHistoryHTML)
 }
 
-// bindMessage is a helper function to bind a JSON message to a Message struct.
-func bindMessage(c *gin.Context) (models.Message, error) {
-	var message models.Message
-	err := c.BindJSON(&message)
-	return message, err
+func editMessage(context *gin.Context, db *gorm.DB) {
+    messageID, err := strconv.Atoi(context.Param("message_id"))
+    if err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
+        return
+    }
+
+    chatID, err := strconv.Atoi(context.Param("chat_id"))
+    if err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
+        return
+    }
+
+    newMessage, err := bindMessage(context)
+    if err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
+
+    if err := database.UpdateMessage(db, uint(chatID), uint(messageID), newMessage.Message); err != nil {
+        context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    context.JSON(http.StatusOK, gin.H{
+        "status":     "message edited",
+        "messageID":  messageID,
+        "newMessage": newMessage.Message,
+    })
+}
+
+func bindMessage(context *gin.Context) (models.Message, error) {
+    var message models.Message
+    err := context.BindJSON(&message)
+    return message, err
 }
