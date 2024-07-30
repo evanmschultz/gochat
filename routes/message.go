@@ -13,7 +13,7 @@ import (
 
 func AddMessageRoutes(router *gin.Engine, db *gorm.DB) {
     router.POST("/chat/:chat_id/message", func(context *gin.Context) { sendMessage(context, db) })
-    router.PUT("/chat/:chat_id/message/:message_id", func(context *gin.Context) { editMessage(context, db) })
+    // router.PUT("/chat/:chat_id/message/:message_id", func(context *gin.Context) { editMessage(context, db) })
 }
 
 func sendMessage(context *gin.Context, db *gorm.DB) {
@@ -36,11 +36,11 @@ func sendMessage(context *gin.Context, db *gorm.DB) {
         return
     }
 
-    // Hardcoded AI response
+    // Hardcoded AI response with Go code
     aiResponse := models.Message{
         ChatID:  uint(chatID),
         UserID:  2, // Assuming AI has userID 2
-        Message: "This is a hardcoded AI response.",
+        Message: "```go\npackage main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello, world!\")\n}\n```",
     }
     if err := database.AddMessage(db, uint(chatID), &aiResponse); err != nil {
         context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -63,39 +63,39 @@ func sendMessage(context *gin.Context, db *gorm.DB) {
     context.String(http.StatusOK, chatHistoryHTML)
 }
 
-func editMessage(context *gin.Context, db *gorm.DB) {
-    messageID, err := strconv.Atoi(context.Param("message_id"))
-    if err != nil {
-        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
-        return
-    }
+// func editMessage(context *gin.Context, db *gorm.DB) {
+//     messageID, err := strconv.Atoi(context.Param("message_id"))
+//     if err != nil {
+//         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
+//         return
+//     }
 
-    chatID, err := strconv.Atoi(context.Param("chat_id"))
-    if err != nil {
-        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
-        return
-    }
+//     chatID, err := strconv.Atoi(context.Param("chat_id"))
+//     if err != nil {
+//         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
+//         return
+//     }
 
-    newMessage, err := bindMessage(context)
-    if err != nil {
-        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-        return
-    }
+//     newMessage, err := bindMessage(context)
+//     if err != nil {
+//         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+//         return
+//     }
 
-    if err := database.UpdateMessage(db, uint(chatID), uint(messageID), newMessage.Message); err != nil {
-        context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+//     if err := database.UpdateMessage(db, uint(chatID), uint(messageID), newMessage.Message); err != nil {
+//         context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+//         return
+//     }
 
-    context.JSON(http.StatusOK, gin.H{
-        "status":     "message edited",
-        "messageID":  messageID,
-        "newMessage": newMessage.Message,
-    })
-}
+//     context.JSON(http.StatusOK, gin.H{
+//         "status":     "message edited",
+//         "messageID":  messageID,
+//         "newMessage": newMessage.Message,
+//     })
+// }
 
-func bindMessage(context *gin.Context) (models.Message, error) {
-    var message models.Message
-    err := context.BindJSON(&message)
-    return message, err
-}
+// func bindMessage(context *gin.Context) (models.Message, error) {
+//     var message models.Message
+//     err := context.BindJSON(&message)
+//     return message, err
+// }

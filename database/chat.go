@@ -53,23 +53,23 @@ func GetAllChats(db *gorm.DB) ([]models.Chat, error) {
 	return chats, nil
 }
 
-func UpdateMessage(db *gorm.DB, chatID, messageID uint, newMessageContent string) error {
-	var chat models.Chat
-	if err := db.First(&chat, chatID).Error; err != nil {
-		return errors.New("chat not found")
-	}
+// func UpdateMessage(db *gorm.DB, chatID, messageID uint, newMessageContent string) error {
+// 	var chat models.Chat
+// 	if err := db.First(&chat, chatID).Error; err != nil {
+// 		return errors.New("chat not found")
+// 	}
 
-	var message models.Message
-	result := db.First(&message, messageID)
-	if result.Error != nil {
-		return result.Error
-	}
+// 	var message models.Message
+// 	result := db.First(&message, messageID)
+// 	if result.Error != nil {
+// 		return result.Error
+// 	}
 
-	if message.ChatID != chatID {
-		return errors.New("message does not belong to this chat")
-	}
+// 	if message.ChatID != chatID {
+// 		return errors.New("message does not belong to this chat")
+// 	}
 
-	message.Message = newMessageContent
-	result = db.Save(&message)
-	return result.Error
-}
+// 	message.Message = newMessageContent
+// 	result = db.Save(&message)
+// 	return result.Error
+// }

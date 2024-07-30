@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	const messagesDiv = document.getElementById('messages');
 	const messageInput = document.getElementById('message-input');
 	const sendMessageBtn = document.getElementById('send-message-btn');
-	const createChatBtn = document.getElementById('create-chat-btn');
+	const createChatBtn = document.getElementById('create-new-chat');
 
 	console.log('Document loaded and DOMContentLoaded event fired.');
 
@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then((data) => {
 				console.log('Chat history data:', data);
 				messagesDiv.innerHTML = data;
+				formatCodeBlocks();
+				scrollToBottom(messagesDiv);
 			})
 			.catch((error) => {
 				console.error('Error fetching chat history:', error);
@@ -58,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	// Send a new message
-	sendMessageBtn.addEventListener('click', function () {
+	sendMessageBtn.addEventListener('click', function (event) {
+		event.preventDefault();
 		const selectedChat = chatList.querySelector('li.selected');
 		const chatId = selectedChat
 			? selectedChat.getAttribute('data-chat-id')
@@ -83,6 +86,8 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.log('Updated chat history data:', data);
 					messagesDiv.innerHTML = data;
 					messageInput.value = '';
+					formatCodeBlocks();
+					scrollToBottom(messagesDiv);
 				})
 				.catch((error) => {
 					console.error('Error sending message:', error);
@@ -112,4 +117,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Fetch chats on load
 	fetchChats();
+
+	// Function to format code blocks using Prism
+	function formatCodeBlocks() {
+		const messageBlocks = document.querySelectorAll('.message-content');
+		messageBlocks.forEach((block) => {
+			const originalContent = block.innerHTML;
+			const formattedContent = formatCode(originalContent);
+			block.innerHTML = formattedContent;
+		});
+		Prism.highlightAll();
+	}
+
+	// Helper function to format code blocks
+	function formatCode(inputString) {
+		let formattedString = inputString.replace(
+			/```(\w+)?\n([\s\S]*?)```/gm,
+			function (_, lang, code) {
+				return `<pre><code class="language-${
+					lang || 'none'
+				}">${code}</code></pre>`;
+			}
+		);
+		formattedString = formattedString.replace(
+			/`([^`]+)`/gm,
+			'<code>$1</code>'
+		);
+		return formattedString;
+	}
+
+	// Function to scroll the chat messages div to the bottom
+	function scrollToBottom(element) {
+		element.scrollTop = element.scrollHeight;
+	}
+
+	// Add an event listener for input events on chat input
+	messageInput.addEventListener('input', function () {
+		// Dynamically adjust the height based on the scrollHeight
+		this.style.height = 'auto';
+		this.style.height = this.scrollHeight + 'px';
+	});
+
+	// Add a keydown event listener
+	messageInput.addEventListener('keydown', function (event) {
+		if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault();
+			sendMessageBtn.click();
+		}
+	});
 });
