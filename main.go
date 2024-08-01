@@ -7,6 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+main is the entry point for the application.
+
+It initializes the database connection, sets up the Gin router, and starts the server on port 8080.
+*/
 func main() {
     db := database.InitDB("test.db")
 

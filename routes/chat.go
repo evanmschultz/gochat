@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -12,6 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
+/*
+AddChatRoutes adds chat-related routes to the Gin router.
+
+- Args:
+    * `router` (*gin.Engine) The Gin router.
+    * `db` (*gorm.DB) The database connection.
+*/
 func AddChatRoutes(router *gin.Engine, db *gorm.DB) {
     router.POST("/chat", func(context *gin.Context) { createChat(context, db) })
     router.GET("/chat/:chat_id", func(context *gin.Context) { getChatHistory(context, db) })
@@ -19,35 +25,45 @@ func AddChatRoutes(router *gin.Engine, db *gorm.DB) {
     router.GET("/user/chats", func(context *gin.Context) { getAllChatsForUser(context, db) })
 }
 
-func createChat(context *gin.Context, db *gorm.DB) {
-    // session := sessions.Default(context)
-    // userID := session.Get("userID")
-    // if userID == nil {
-    //     context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-    //     return
-    // }
+/*
+createChat creates a new chat in the database.
 
+It expects a JSON payload in the request body containing the chat details.
+The chat is associated with the current user (hardcoded to user ID 1 for now).
+If the chat is created successfully, the function returns the chat ID and title.
+If there is an error, it returns an appropriate HTTP status code and error message.
+
+- Args:
+    * `context` (*gin.Context) The Gin context for the current HTTP request.
+    * `db` (*gorm.DB) The database connection.
+*/
+func createChat(context *gin.Context, db *gorm.DB) {
     var chat models.Chat
     if err := context.ShouldBindJSON(&chat); err != nil {
-        log.Printf("Invalid input: %v", err)
         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
         return
     }
 
-    // chat.UserID = userID.(uint)
-	chat.UserID = 1
+    chat.UserID = 1
     if err := database.AddChat(db, &chat); err != nil {
-        log.Printf("Failed to create chat: %v", err)
         context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create chat"})
         return
     }
 
-    log.Printf("Chat created with ID %d", chat.ID)
-    chatItemHTML := `<li data-chat-id="` + strconv.Itoa(int(chat.ID)) + `">Chat ` + strconv.Itoa(int(chat.ID)) + `</li>`
-    context.Header("Content-Type", "text/html")
-    context.String(http.StatusOK, chatItemHTML)
+    context.JSON(http.StatusOK, gin.H{"id": chat.ID, "title": "Chat " + strconv.Itoa(int(chat.ID))})
 }
 
+/*
+getChatHistory retrieves the chat history for a given chat ID.
+
+It expects the chat ID as a URL parameter.
+If the chat is found, it returns the chat history.
+If the chat is not found, it returns an appropriate HTTP status code and error message.
+
+- Args:
+    * `context` (*gin.Context) The Gin context for the current HTTP request.
+    * `db` (*gorm.DB) The database connection.
+*/
 func getChatHistory(context *gin.Context, db *gorm.DB) {
     chatID, err := strconv.Atoi(context.Param("chat_id"))
     if err != nil {
@@ -61,41 +77,59 @@ func getChatHistory(context *gin.Context, db *gorm.DB) {
         return
     }
 
-    var chatHistoryHTML string
-    for _, message := range chat.Messages {
-        chatHistoryHTML += `<div>` + message.Message + `</div>`
+    var messages []gin.H
+    for _, msg := range chat.Messages {
+        messages = append(messages, gin.H{
+            "id":          msg.ID,
+            "message":     msg.Message,
+            "messageType": msg.MessageType,
+        })
     }
 
-    context.Header("Content-Type", "text/html")
-    context.String(http.StatusOK, chatHistoryHTML)
+    context.JSON(http.StatusOK, gin.H{"messages": messages})
 }
 
-func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
-    // session := sessions.Default(context)
-    // userID := session.Get("userID")
-    // if userID == nil {
-    //     context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-    //     return
-    // }
+/*
+getAllChatsForUser retrieves all chats associated with the current user.
 
-	userID := 1
+The user ID is hardcoded to 1 for now.
+If the chats are found, it returns the chat list.
+If there is an error, it returns an appropriate HTTP status code and error message.
+
+- Args:
+    * `context` (*gin.Context) The Gin context for the current HTTP request.
+    * `db` (*gorm.DB) The database connection.
+*/
+func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
+    userID := 1
 
     chats, err := database.GetAllChatsForUser(db, uint(userID))
     if err != nil {
-		log.Printf("Failed to retrieve chats for user %d: %v", userID, err)
         context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve chats"})
         return
     }
 
-    var chatListHTML string
+    var chatList []gin.H
     for _, chat := range chats {
-        chatListHTML += `<li data-chat-id="` + strconv.Itoa(int(chat.ID)) + `">Chat ` + strconv.Itoa(int(chat.ID)) + `</li>`
+        chatList = append(chatList, gin.H{
+            "id":    chat.ID,
+            "title": "Chat " + strconv.Itoa(int(chat.ID)),
+        })
     }
 
-    context.Header("Content-Type", "text/html")
-    context.String(http.StatusOK, chatListHTML)
+    context.JSON(http.StatusOK, gin.H{"chats": chatList})
 }
 
+/*
+deleteChat deletes a chat from the database.
+
+It expects the chat ID as a URL parameter.
+If the chat is deleted successfully, it returns a success message.
+
+- Args:
+    * `context` (*gin.Context) The Gin context for the current HTTP request.
+    * `db` (*gorm.DB) The database connection.
+*/
 func deleteChat(context *gin.Context, db *gorm.DB) {
     chatID, err := strconv.Atoi(context.Param("chat_id"))
     if err != nil {

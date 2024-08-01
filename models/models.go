@@ -4,6 +4,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type MessageType string
+
+const (
+	UserMessageType MessageType = "USER"
+	AIMessageType   MessageType = "AI"
+)
+
 // User represents a user in the database
 type User struct {
 	gorm.Model
@@ -21,7 +28,8 @@ type Chat struct {
 // Message represents a message in a chat
 type Message struct {
 	gorm.Model
-	ChatID  uint   `json:"chat_id"`
-	UserID  uint   `json:"user_id"`
-	Message string `json:"message"`
+	ChatID      uint       `json:"chat_id"`
+	UserID      uint       `json:"user_id"`
+	Message     string     `json:"message"`
+	MessageType MessageType `json:"message_type"`
 }

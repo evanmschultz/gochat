@@ -695,6 +695,22 @@ main {
 	flex-direction: column;
 }
 
+.message-content {
+	border: 1px solid #333;
+	padding: 20px;
+	margin-bottom: 10px;
+}
+
+.user-message {
+	/* background-color: #e1ffc7; */
+	border: 1px solid #333;
+	padding: 10px;
+}
+
+.ai-message {
+	background-color: #f0f0f0;
+}
+
 /* Clearing
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 

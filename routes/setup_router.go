@@ -7,6 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
+/*
+SetupRouter sets up the Gin router with all the necessary routes and middleware.
+
+- Args:
+    * `db` (*gorm.DB) The database connection.
+
+- Returns:
+    (*gin.Engine) The configured Gin router.
+*/
 func SetupRouter(db *gorm.DB) *gin.Engine {
     router := gin.Default()
 
