@@ -55,11 +55,21 @@ func sendMessage(context *gin.Context, db *gorm.DB) {
 		return
 	}
 
+	message.Message = `Example go code:
+	` + "```go\n" + `package main
+
+	import "fmt"
+
+	func main() {
+    	fmt.Println("Hello, world!")
+	}
+	` + "```\n\n" + `This is hardcoded in the backend for now. The AI will respond with Go code:`
+
 	// Hardcoded AI response with Go code
 	aiResponse := models.Message{
 		ChatID:      uint(chatID),
 		UserID:      1, // Same user ID as the user
-		Message:     "```go\npackage main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello, world!\")\n}\n```",
+		Message:     message.Message,
 		MessageType: models.AIMessageType,
 	}
 	if err := database.AddMessage(db, uint(chatID), &aiResponse); err != nil {
