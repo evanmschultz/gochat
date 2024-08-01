@@ -642,6 +642,10 @@ hr {
 	border-width: 0;
 	border-top: 1px solid #e1e1e1;
 }
+.main-body {
+	display: flex;
+	padding: 5vh;
+}
 .sidebar {
 	max-height: 90vh;
 	position: sticky;
@@ -652,6 +656,14 @@ hr {
 	padding: 15px;
 	height: 90vh;
 	overflow-y: auto;
+}
+.sidebar-contents-container {
+	overflow-y: auto;
+	max-height: calc(100vh - 50px);
+}
+.sidebar-header-container {
+	margin-bottom: 1rem;
+	font-size: 2rem;
 }
 .chat-messages {
 	padding: 2rem;
@@ -687,6 +699,7 @@ hr {
 	resize: vertical;
 	margin-right: 1rem;
 }
+
 main {
 	max-height: 95vh;
 	position: relative;
@@ -695,7 +708,15 @@ main {
 	flex-direction: column;
 }
 
-.message-content {
+.chat-container {
+	flex: 7;
+	overflow: auto;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+}
+
+.chat-container .message-content {
 	border: 1px solid #333;
 	padding: 20px;
 	margin-bottom: 10px;

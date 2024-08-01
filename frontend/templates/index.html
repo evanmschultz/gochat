@@ -10,19 +10,16 @@
 			type="text/css"
 		/>
 		<link rel="stylesheet" href="/static/css/normalize.css" />
-		<link rel="stylesheet" href="/static/css/skeleton.css" />
 		<link rel="icon" type="image/png" href="/static/assets/Phi_lc.svg" />
 		<link rel="stylesheet" href="/static/css/prism-atom-dark.css" />
+		<link rel="stylesheet" href="/static/css/skeleton.css" />
 	</head>
 	<body>
-		<div style="display: flex; padding: 5vh">
+		<div class="main-body">
 			<!-- Sidebar -->
-			<aside
-				class="sidebar"
-				style="flex: 1; overflow: auto; height: 96vh"
-			>
-				<div style="overflow-y: auto; max-height: calc(100vh - 50px)">
-					<div style="margin-bottom: 1rem; font-size: 2rem">
+			<aside class="sidebar">
+				<div class="sidebar-contents-container">
+					<div class="sidebar-header-container">
 						<a href="#" id="create-new-chat">+New Chat</a>
 					</div>
 					<ul id="chat-list">
@@ -32,15 +29,7 @@
 			</aside>
 
 			<!-- Main Chat Window -->
-			<main
-				style="
-					flex: 7;
-					overflow: auto;
-					display: flex;
-					flex-direction: column;
-					position: relative;
-				"
-			>
+			<main class="chat-container">
 				<div id="messages" class="chat-messages">
 					<!-- Messages will be appended here -->
 				</div>
@@ -51,7 +40,7 @@
 							id="message-input"
 							name="chat-input"
 							class="chat-input"
-							placeholder="Type your message here. Press `cmd` or `cntrl` + `enter` to send..."
+							placeholder="Type your query here..."
 						></textarea>
 						<button id="send-message-btn" type="submit">
 							Send
@@ -60,7 +49,7 @@
 				</div>
 			</main>
 		</div>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+		<script src="/static/js/prism.js"></script>
 		<script src="/static/js/scripts.js"></script>
 	</body>
 </html>

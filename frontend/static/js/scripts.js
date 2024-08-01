@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	const sendMessageBtn = document.getElementById('send-message-btn');
 	const createChatBtn = document.getElementById('create-new-chat');
 
-	console.log('Document loaded and DOMContentLoaded event fired.');
-
 	/**
 	 * Formats a string containing code blocks and inline code by applying syntax highlighting.
 	 *
@@ -42,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 									Prism.languages.plain,
 									'plain'
 							  );
-					return `<pre><code class="language-${
+					return `<pre style="margin: 1.5rem"><code class="language-${
 						lang || 'plain'
 					}">${highlightedCode}</code></pre>`;
 				} catch (error) {
@@ -78,26 +76,49 @@ document.addEventListener('DOMContentLoaded', function () {
 	 * each chat item to allow the user to select a chat and fetch its history.
 	 */
 	function fetchChats() {
-		console.log('Fetching chats...');
 		fetch('/user/chats')
 			.then((response) => response.json())
 			.then((data) => {
-				console.log('Chat list data:', data);
 				if (data.chats && Array.isArray(data.chats)) {
-					chatList.innerHTML = data.chats
-						.sort((a, b) => b.id - a.id)
+					const sortedChats = data.chats.sort((a, b) => b.id - a.id);
+					chatList.innerHTML = sortedChats
 						.map(
 							(chat) =>
-								`<li data-chat-id="${chat.id}">${chat.title}</li>`
+								`<li data-chat-id="${chat.id}">
+									<a style="cursor: pointer;">${chat.title}</a>
+								</li>`
 						)
 						.join('');
 					addChatClickHandlers();
-				} else {
-					console.error('Invalid chat data structure:', data);
+					if (sortedChats.length > 0) {
+						fetchChatHistory(sortedChats[0].id);
+					}
+				}
+			});
+		// .catch((error) => {
+		// 	console.error('Error fetching chats:', error);
+		// });
+	}
+
+	/**
+	 * Fetches the chat history for the specified chat ID and displays the messages.
+	 *
+	 * This function makes a request to the `/chat/{chatId}` endpoint to retrieve the chat history for the
+	 * specified chat ID. It then calls the `displayMessages` function to render the chat messages in the UI.
+	 *
+	 * @param {string} chatId - The ID of the chat to fetch the history for.
+	 */
+	function fetchChatHistory(chatId) {
+		fetch(`/chat/${chatId}`)
+			.then((response) => response.json())
+			.then((data) => {
+				if (data.messages && Array.isArray(data.messages)) {
+					displayMessages(data.messages);
+					scrollToBottom(messagesDiv);
 				}
 			})
 			.catch((error) => {
-				console.error('Error fetching chats:', error);
+				console.error('Error fetching chat history:', error);
 			});
 	}
 
@@ -112,42 +133,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	 */
 	function addChatClickHandlers() {
 		const chatItems = chatList.querySelectorAll('li');
-		console.log('Adding click handlers to chat items:', chatItems);
 		chatItems.forEach((item) => {
 			item.addEventListener('click', function () {
 				chatItems.forEach((chat) => chat.classList.remove('selected'));
 				this.classList.add('selected');
 				const chatId = this.getAttribute('data-chat-id');
-				console.log('Chat item clicked, chat ID:', chatId);
 				fetchChatHistory(chatId);
 			});
 		});
-	}
-
-	/**
-	 * Fetches the chat history for the specified chat ID and displays the messages.
-	 *
-	 * This function makes a request to the `/chat/{chatId}` endpoint to retrieve the chat history for the
-	 * specified chat ID. It then calls the `displayMessages` function to render the chat messages in the UI.
-	 *
-	 * @param {string} chatId - The ID of the chat to fetch the history for.
-	 */
-	function fetchChatHistory(chatId) {
-		console.log('Fetching chat history for chat ID:', chatId);
-		fetch(`/chat/${chatId}`)
-			.then((response) => response.json())
-			.then((data) => {
-				console.log('Chat history data:', data);
-				if (data.messages && Array.isArray(data.messages)) {
-					displayMessages(data.messages);
-					scrollToBottom(messagesDiv);
-				} else {
-					console.error('Invalid chat history data structure:', data);
-				}
-			})
-			.catch((error) => {
-				console.error('Error fetching chat history:', error);
-			});
 	}
 
 	/**
@@ -185,12 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				messageElement.style.marginLeft = '10rem';
 			}
 
-			// const senderLabel = document.createElement('strong');
-			// senderLabel.textContent =
-			// 	message.messageType === 'AI' ? 'AI: ' : 'You: ';
-
-			// messageElement.appendChild(senderLabel);
-
 			const messageContent = document.createElement('span');
 			messageContent.innerHTML = formatCodeBlocks(message.message);
 			messageElement.appendChild(messageContent);
@@ -222,8 +209,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			: null;
 		const message = messageInput.value.trim();
 
-		console.log('Sending message. Chat ID:', chatId, 'Message:', message);
-
 		if (!chatId || !message) {
 			console.warn('Chat ID or message is missing.');
 			return;
@@ -243,12 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 			.then((response) => response.json())
 			.then((data) => {
-				console.log('Updated chat history data:', data);
 				if (data.messages && Array.isArray(data.messages)) {
 					displayMessages(data.messages);
 					scrollToBottom(messagesDiv);
-				} else {
-					console.error('Invalid response data structure:', data);
 				}
 			})
 			.catch((error) => {
@@ -267,25 +249,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	 * @returns {Array<{ messageType: 'AI' | 'User', message: string }>} - An array of message objects, where each
 	 * object has a `messageType` property (either 'AI' or 'User') and a `message` property (the text content of
 	 * the message).
-	 */
-	function getCurrentMessages() {
-		return Array.from(messagesDiv.children).map((el) => ({
-			messageType: el.classList.contains('ai-message') ? 'AI' : 'User',
-			message: el.querySelector('span').innerHTML
-		}));
-	}
-
-	/**
-	 * Retrieves the current messages displayed in the chat UI.
-	 *
-	 * This function maps over the child elements of the `messagesDiv` element and creates an array of objects,
-	 * where each object represents a message. The `messageType` property is set to either 'AI' or 'User' based
-	 * on the CSS class of the message element, and the `message` property is set to the inner HTML of the message
-	 * element's `span` tag.
-	 *
-	 * @returns {Array<{ messageType: 'AI' | 'User', message: string }>} - An array of message objects, where each
-	 * object has a `messageType` property (either 'AI' or 'User') and a `message` property (the text content of the
-	 * message).
 	 */
 	function getCurrentMessages() {
 		return Array.from(messagesDiv.children).map((el) => ({
@@ -315,7 +278,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	 * @param {Event} event - The click event object.
 	 */
 	createChatBtn.addEventListener('click', function () {
-		console.log('Create chat button clicked.');
 		fetch('/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -323,15 +285,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 			.then((response) => response.json())
 			.then((data) => {
-				console.log('Create chat response data:', data);
 				if (data.id && data.title) {
 					const newChatItem = document.createElement('li');
 					newChatItem.setAttribute('data-chat-id', data.id);
 					newChatItem.textContent = data.title;
 					chatList.appendChild(newChatItem);
 					addChatClickHandlers();
-				} else {
-					console.error('Invalid create chat response:', data);
 				}
 			})
 			.catch((error) => {
