@@ -386,20 +386,21 @@ main {
 	white-space: normal; /* Ensure text wraps within the container */
 }
 
+.user-message,
+.ai-message {
+	border-radius: 0.35rem;
+	padding: 2rem;
+	margin-bottom: 4rem;
+}
+
 .user-message {
-	padding: 10px;
 	background-color: var(--user-message-bg);
 	margin-left: 10rem;
-	margin-bottom: 4rem;
-	border-radius: 0.35rem;
 }
 
 .ai-message {
 	background-color: var(--ai-message-bg);
 	margin-right: 10rem;
-	margin-bottom: 4rem;
-	padding: 2rem;
-	border-radius: 0.35rem;
 }
 
 .send-message-btn {
