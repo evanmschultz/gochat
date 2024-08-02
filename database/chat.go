@@ -35,7 +35,7 @@ GetChat retrieves a chat by ID from the database.
 */
 func GetChat(db *gorm.DB, chatID uint) (*models.Chat, error) {
 	var chat models.Chat
-	result := db.Preload("Messages").First(&chat, chatID)
+	result := db.Preload("Messages").First(&chat, "id = ?", chatID)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -69,7 +69,8 @@ DeleteChat deletes a chat from the database.
 	(error) An error if the operation failed.
 */
 func DeleteChat(db *gorm.DB, chatID uint) error {
-	result := db.Delete(&models.Chat{}, chatID)
+	conditions := map[string]interface{}{"id": chatID}
+	result := db.Delete(&models.Chat{}, conditions)
 	return result.Error
 }
 

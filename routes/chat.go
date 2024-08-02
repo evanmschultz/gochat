@@ -129,6 +129,9 @@ If the chat is deleted successfully, it returns a success message.
 - Args:
     * `context` (*gin.Context) The Gin context for the current HTTP request.
     * `db` (*gorm.DB) The database connection.
+
+- Returns:
+    * `status` (string) A success message if the chat is deleted.
 */
 func deleteChat(context *gin.Context, db *gorm.DB) {
     chatID, err := strconv.Atoi(context.Param("chat_id"))

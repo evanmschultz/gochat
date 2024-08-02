@@ -63,7 +63,7 @@ func sendMessage(context *gin.Context, db *gorm.DB) {
 	func main() {
     	fmt.Println("Hello, world!")
 	}
-	` + "```\n\n" + `This is hardcoded in the backend for now. The AI will respond with Go code:`
+	` + "```\n\n" + `This is hardcoded in the backend for now. ` + "`inline-code`" +` this is an example of inline code.`
 
 	// Hardcoded AI response with Go code
 	aiResponse := models.Message{
