@@ -15,6 +15,70 @@ document.addEventListener('DOMContentLoaded', function () {
 	const messageInput = document.getElementById('message-input');
 	const sendMessageBtn = document.getElementById('send-message-btn');
 	const createChatBtn = document.getElementById('create-new-chat');
+	const sidebar = document.getElementById('sidebar');
+	const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+	const toggleThemeBtn = document.getElementById('toggle-theme');
+	const toggleThemeLabel = document.getElementById('toggle-theme-label');
+
+	/**
+	 * Toggles the light/dark mode theme of the application when the theme toggle button is clicked.
+	 *
+	 * This function adds or removes the 'light-mode' class from the root HTML element, which switches the application
+	 * between a light and dark theme. It also updates the text content of the theme toggle label to reflect the
+	 * current theme.
+	 */
+	toggleThemeBtn.addEventListener('click', function () {
+		document.documentElement.classList.toggle('light-mode');
+
+		if (document.documentElement.classList.contains('light-mode')) {
+			toggleThemeLabel.textContent = 'Dark Mode';
+		} else {
+			toggleThemeLabel.textContent = 'Light Mode';
+		}
+	});
+
+	/**
+	 * Toggles the 'open' class on the sidebar element when the toggle button is clicked.
+	 * This function is used to show or hide the sidebar based on user interaction.
+	 */
+	toggleSidebarBtn.addEventListener('click', function () {
+		sidebar.classList.toggle('open');
+	});
+
+	/**
+	 * Listens for click events on the document and toggles the 'open' class on the sidebar element if the click was
+	 * outside the sidebar and the toggle button.
+	 *
+	 * This function is used to close the sidebar when the user clicks outside of it, ensuring the sidebar is only visible
+	 * when the user intends to interact with it.
+	 */
+	document.addEventListener('click', function (event) {
+		const isClickInsideSidebar = sidebar.contains(event.target);
+		const isClickOnToggleButton = toggleSidebarBtn.contains(event.target);
+
+		if (
+			!isClickInsideSidebar &&
+			!isClickOnToggleButton &&
+			sidebar.classList.contains('open')
+		) {
+			sidebar.classList.remove('open');
+		}
+	});
+
+	/**
+	 * Automatically adjusts the height of the message input field to fit the content.
+	 *
+	 * This function is called whenever the user types into the message input field. It adjusts the height
+	 * of the input field based on its content, with a maximum height limit.
+	 */
+	messageInput.addEventListener('input', function () {
+		this.style.height = 'auto';
+		const newHeight = Math.min(
+			this.scrollHeight,
+			window.innerHeight * 0.35
+		);
+		this.style.height = newHeight + 'px';
+	});
 
 	/**
 	 * Formats a string containing code blocks and inline code by applying syntax highlighting.
@@ -28,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	function formatCodeBlocks(inputString) {
 		if (!inputString) return '';
 
+		// Highlight code blocks
 		let formattedString = inputString.replace(
 			/```(\w+)?\n([\s\S]*?)```/gm,
 			function (match, lang, code) {
@@ -52,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		);
 
+		// Highlight inline code blocks
 		formattedString = formattedString.replace(
 			/`([^`]+)`/gm,
 			'<code>$1</code>'
@@ -69,11 +135,17 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	/**
-	 * Fetches the list of chats for the current user and updates the chat list UI.
+	 * Fetches the list of chats for the current user and displays them in the chat list.
 	 *
-	 * This function makes a request to the `/user/chats` endpoint to retrieve the list of chats for the current user.
-	 * It then updates the chat list UI by rendering the chat titles as list items, and attaches click event handlers to
-	 * each chat item to allow the user to select a chat and fetch its history.
+	 * This function makes a request to the `/user/chats` endpoint to retrieve the list of chats for the
+	 * current user. It then sorts the chats by their ID in descending order and renders them in the
+	 * `chatList` element. If there are no chats available, the function clears the `messagesDiv`
+	 * element.
+	 *
+	 * After rendering the chat list, the function calls the `addChatClickHandlers` function to add
+	 * click event handlers to the chat items. If there are any chats available, the function also
+	 * selects the first chat item and calls the `fetchChatHistory` function to display the chat
+	 * history for the first chat.
 	 */
 	function fetchChats() {
 		fetch('/user/chats')
@@ -85,26 +157,36 @@ document.addEventListener('DOMContentLoaded', function () {
 						.map(
 							(chat) =>
 								`<li data-chat-id="${chat.id}">
-									<a style="cursor: pointer;">${chat.title}</a>
+									<a style="margin-right: 2.5rem;">${chat.title}</a>
+									<a onclick="submitDeleteForm('${chat.id}')">X</a>
 								</li>`
 						)
 						.join('');
 					addChatClickHandlers();
 					if (sortedChats.length > 0) {
+						const firstChatId = sortedChats[0].id;
+						const firstChatItem = chatList.querySelector(
+							`li[data-chat-id="${firstChatId}"]`
+						);
+						firstChatItem.classList.add('selected');
 						fetchChatHistory(sortedChats[0].id);
+					} else {
+						messagesDiv.innerHTML = ''; // Clear messages if no chats are available
 					}
 				}
+			})
+			.catch((error) => {
+				console.error('Error fetching chats:', error);
 			});
-		// .catch((error) => {
-		// 	console.error('Error fetching chats:', error);
-		// });
 	}
 
 	/**
-	 * Fetches the chat history for the specified chat ID and displays the messages.
+	 * Fetches the chat history for the specified chat ID and displays the messages in the UI.
 	 *
 	 * This function makes a request to the `/chat/{chatId}` endpoint to retrieve the chat history for the
-	 * specified chat ID. It then calls the `displayMessages` function to render the chat messages in the UI.
+	 * specified chat ID. It then calls the `displayMessages` function to render the messages in the
+	 * `messagesDiv` element. If there are no messages available, the function clears the `messagesDiv`
+	 * element.
 	 *
 	 * @param {string} chatId - The ID of the chat to fetch the history for.
 	 */
@@ -115,6 +197,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (data.messages && Array.isArray(data.messages)) {
 					displayMessages(data.messages);
 					scrollToBottom(messagesDiv);
+				} else {
+					messagesDiv.innerHTML = ''; // Clear messages if no messages are available
 				}
 			})
 			.catch((error) => {
@@ -164,18 +248,20 @@ document.addEventListener('DOMContentLoaded', function () {
 			}`;
 
 			// set standard message element styles
-			messageElement.style.border = '1px solid #333';
+			// messageElement.style.border = '1px solid #333';
 			messageElement.style.marginBottom = '4rem';
 			messageElement.style.padding = '2rem';
 			messageElement.style.borderRadius = '0.35rem';
+			messageElement.className = 'user-message';
 
 			// set AI and User specific styles
 			if (message.messageType === 'AI') {
-				messageElement.style.backgroundColor = '#e0e4e7';
-				messageElement.style.marginRight = '10rem';
+				// messageElement.style.backgroundColor = '#e0e4e7';
+				// messageElement.style.marginRight = '10rem';
+				messageElement.className = 'ai-message';
 			} else {
-				messageElement.style.backgroundColor = '#fafafa';
-				messageElement.style.marginLeft = '10rem';
+				// messageElement.style.backgroundColor = '#fafafa';
+				// messageElement.style.marginLeft = '10rem';
 			}
 
 			const messageContent = document.createElement('span');
@@ -292,6 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					chatList.appendChild(newChatItem);
 					addChatClickHandlers();
 				}
+				window.location.reload(); // Reload the page
 			})
 			.catch((error) => {
 				console.error('Error creating chat:', error);
@@ -319,27 +406,45 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	/**
-	 * Handles the keydown event on the message input field.
+	 * Checks if the current device is a mobile device.
 	 *
-	 * This function is called when the user presses a key while the message input field has focus. If the user presses
+	 * This function uses the user agent string to detect if the current device is a mobile device, such as a smartphone or
+	 * tablet. It returns `true` if the device is a mobile device, and `false` otherwise.
+	 *
+	 * @returns {boolean} `true` if the current device is a mobile device, `false` otherwise.
+	 */
+	function isMobile() {
+		return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent
+		);
+	}
+
+	/**
+	 * Handles the keydown event on the message input field for non-mobile devices.
+	 *
+	 * This function is called when the user presses a key while the message input field has focus on a non-mobile device. If the user presses
 	 * the Enter key without holding the Shift key, the function prevents the default form submission behavior and calls
 	 * the `sendMessage()` function to send the message.
 	 *
 	 * @param {KeyboardEvent} event - The keydown event object.
 	 */
-	messageInput.addEventListener('keydown', function (event) {
-		if (event.key === 'Enter' && !event.shiftKey) {
-			event.preventDefault();
-			sendMessage();
-		}
-	});
+	if (!isMobile()) {
+		messageInput.addEventListener('keydown', function (event) {
+			if (event.key === 'Enter' && !event.shiftKey) {
+				event.preventDefault();
+				sendMessage();
+			}
+		});
+	}
 });
 
 /**
- * Submits a DELETE request to the server to delete a chat.
+ * Submits a DELETE request to the `/chat/${chatId}` endpoint to delete a chat.
  *
- * This function is called when the user wants to delete a chat. It sends a DELETE request to the `/chat/${chatId}`
- * endpoint, and upon a successful response, it removes the corresponding chat item from the chat list in the UI.
+ * This function is responsible for handling the deletion of a chat. It sends a DELETE request to the server to remove the
+ * chat with the specified `chatId`. If the deletion is successful, it removes the corresponding chat item from the UI and
+ * selects the next available chat, if any. If there are no more chats, it clears the message area. Finally, it refreshes
+ * the chat list to ensure the UI reflects the current state and reloads the page.
  *
  * @param {string} chatId - The ID of the chat to be deleted.
  */
@@ -353,12 +458,32 @@ function submitDeleteForm(chatId) {
 				`li[data-chat-id="${chatId}"]`
 			);
 			if (chatItem) {
+				const wasSelected = chatItem.classList.contains('selected');
 				chatItem.remove();
+
+				if (wasSelected) {
+					// Find the next chat to select
+					const nextChat = document.querySelector('#chat-list li');
+					if (nextChat) {
+						nextChat.classList.add('selected');
+						const nextChatId =
+							nextChat.getAttribute('data-chat-id');
+						fetchChatHistory(nextChatId);
+					} else {
+						// No more chats, clear the message area
+						document.getElementById('messages').innerHTML = '';
+					}
+				}
 			} else {
 				console.warn('Chat item not found in the list:', chatId);
 			}
+			fetchChats(); // Refresh the chat list to ensure it reflects the current state
+			window.location.reload(); // Reload the page
 		})
 		.catch((error) => {
 			console.error('Error deleting chat:', error);
 		});
 }
+
+// Ensure fetchChats is called initially to load the chats
+fetchChats();
