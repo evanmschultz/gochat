@@ -2,10 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"strconv"
 
 	"gochat/database"
-	"gochat/models"
+	"gochat/routes/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,78 +22,56 @@ func AddMessageRoutes(router *gin.Engine, db *gorm.DB) {
 }
 
 /*
-sendMessage sends a message to a chat.
+sendMessage adds a new message to the chat history.
 
 It expects a JSON payload in the request body containing the message details.
 The message is associated with the current user (hardcoded to user ID 1 for now).
-If the message is sent successfully, the function returns the updated chat history.
+If the message is added successfully, the function returns the updated chat history.
 If there is an error, it returns an appropriate HTTP status code and error message.
 
 - Args:
 	* `context` (*gin.Context) The Gin context for the current HTTP request.
 	* `db` (*gorm.DB) The database connection.
+
+- Returns:
+	* `JSON` or `HTML` The updated chat history using the `RespondBasedOnAcceptHeader` function.
+	* `error` An error if the chat ID or message is invalid.
 */
 func sendMessage(context *gin.Context, db *gorm.DB) {
-	chatID, err := strconv.Atoi(context.Param("chat_id"))
+	chatID, err := utils.ParseAndValidateChatID(context)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var message models.Message
-	if err := context.ShouldBindJSON(&message); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+	userMessage, err := utils.ParseAndValidateMessage(context, chatID)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	message.ChatID = uint(chatID)
-	message.UserID = 1 // Default user ID
-	message.MessageType = models.UserMessageType
-	if err := database.AddMessage(db, uint(chatID), &message); err != nil {
+	err = database.AddMessage(db, uint(chatID), userMessage)
+	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	message.Message = `Example go code:
-	` + "```go\n" + `package main
-
-	import "fmt"
-
-	func main() {
-    	fmt.Println("Hello, world!")
-	}
-	` + "```\n\n" + `This is hardcoded in the backend for now. ` + "`inline-code`" +` this is an example of inline code.`
-
-	// Hardcoded AI response with Go code
-	aiResponse := models.Message{
-		ChatID:      uint(chatID),
-		UserID:      1, // Same user ID as the user
-		Message:     message.Message,
-		MessageType: models.AIMessageType,
-	}
-	if err := database.AddMessage(db, uint(chatID), &aiResponse); err != nil {
+	aiResponse := utils.GetAIResponse()
+	aiMessage, err := utils.SaveAIResponse(db, chatID, aiResponse)
+	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Fetch updated chat history
-	chat, err := database.GetChat(db, uint(chatID))
+	messages, err := utils.FetchUpdatedChatHistory(db, chatID)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Chat not found"})
 		return
 	}
 
-	var messages []gin.H
-	for _, msg := range chat.Messages {
-		messages = append(messages, gin.H{
-			"id":          msg.ID,
-			"message":     msg.Message,
-			"messageType": msg.MessageType,
-		})
-	}
-
-	context.JSON(http.StatusOK, gin.H{"messages": messages})
+	utils.RespondBasedOnAcceptHeader(context, messages, userMessage, aiMessage)
 }
+
 
 // func editMessage(context *gin.Context, db *gorm.DB) {
 // 	messageID, err := strconv.Atoi(context.Param("message_id"))

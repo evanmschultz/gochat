@@ -1,0 +1,12 @@
+{{ range .chats }}
+<li data-chat-id="{{ .id }}">
+	<a href="#" hx-get="/chat/{{ .id }}" hx-target="#messages">{{ .title }}</a>
+	<button
+		hx-delete="/chat/{{ .id }}"
+		hx-target="closest li"
+		hx-swap="outerHTML"
+	>
+		Delete
+	</button>
+</li>
+{{ end }}

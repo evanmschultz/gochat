@@ -56,13 +56,18 @@ func createChat(context *gin.Context, db *gorm.DB) {
 /*
 getChatHistory retrieves the chat history for a given chat ID.
 
+It will conditionally return the chat history as JSON or HTML based on the Accept header.
+
 It expects the chat ID as a URL parameter.
 If the chat is found, it returns the chat history.
-If the chat is not found, it returns an appropriate HTTP status code and error message.
+If there is an error, it returns an appropriate HTTP status code and error message.
 
 - Args:
     * `context` (*gin.Context) The Gin context for the current HTTP request.
     * `db` (*gorm.DB) The database connection.
+
+- Returns:
+    * `messages` ([]gin.H) A list of messages in the chat.
 */
 func getChatHistory(context *gin.Context, db *gorm.DB) {
     chatID, err := strconv.Atoi(context.Param("chat_id"))
@@ -86,11 +91,19 @@ func getChatHistory(context *gin.Context, db *gorm.DB) {
         })
     }
 
-    context.JSON(http.StatusOK, gin.H{"messages": messages})
+    if context.GetHeader("Accept") == "text/html" {
+		context.HTML(http.StatusOK, "chat_history.html", gin.H{
+			"messages": messages,
+		})
+	} else {
+		context.JSON(http.StatusOK, gin.H{"messages": messages})
+	}
 }
 
 /*
 getAllChatsForUser retrieves all chats associated with the current user.
+
+It will conditionally return the chat list as JSON or HTML based on the Accept header.
 
 The user ID is hardcoded to 1 for now.
 If the chats are found, it returns the chat list.
@@ -99,6 +112,9 @@ If there is an error, it returns an appropriate HTTP status code and error messa
 - Args:
     * `context` (*gin.Context) The Gin context for the current HTTP request.
     * `db` (*gorm.DB) The database connection.
+
+- Returns:
+    * `chats` ([]gin.H) A list of chats associated with the user.
 */
 func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
     userID := 1
@@ -117,7 +133,13 @@ func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
         })
     }
 
-    context.JSON(http.StatusOK, gin.H{"chats": chatList})
+    if context.GetHeader("Accept") == "text/html" {
+		context.HTML(http.StatusOK, "chat_list.html", gin.H{
+			"chats": chatList,
+		})
+	} else {
+		context.JSON(http.StatusOK, gin.H{"chats": chatList})
+	}
 }
 
 /*

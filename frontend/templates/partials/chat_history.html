@@ -1,0 +1,5 @@
+{{ range .messages }}
+<div class="message {{ if eq .messageType "AI" }}ai-message{{ else }}user-message{{ end }}">
+    <p>{{ .message }}</p>
+</div>
+{{ end }}

@@ -18,14 +18,16 @@ func main() {
     router := routes.SetupRouter(db)
 
     // Load HTML templates
-    router.LoadHTMLGlob("frontend/templates/*")
+    router.LoadHTMLGlob("frontend/templates/**/*")
 
     // Serve static files
     router.Static("/static", "./frontend/static")
 
     // Serve index.html as the main entry point
     router.GET("/", func(c *gin.Context) {
-        c.File("./frontend/templates/index.html")
+        c.HTML(200, "pages/index.html", gin.H{
+            "title": "GoChat",
+        })
     })
 
     // Start the server on port 8080
