@@ -1,0 +1,51 @@
+{{ define "base" }}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+		<title>{{ .title }}</title>
+		<link
+			href="//fonts.googleapis.com/css?family=Raleway:400,300,600"
+			rel="stylesheet"
+			type="text/css"
+		/>
+		<link rel="stylesheet" href="/static/css/normalize.css" />
+		<link rel="icon" type="image/png" href="/static/assets/Phi_lc.svg" />
+		<link rel="stylesheet" href="/static/css/prism-atom-dark.css" />
+		<link rel="stylesheet" href="/static/css/styles.css" />
+		<!-- <script
+			src="https://unpkg.com/htmx.org@1.9.6"
+			integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+			crossorigin="anonymous"
+		></script> -->
+		<script src="https://unpkg.com/htmx.org@2.0.1"></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.3/marked.min.js"
+			integrity="sha512-Psai3z4cnMO9lgFfmFlFzedh4j6EPUuox+zKhGJNSSL4ff5Bhxv2B4hJlYTwAknMEipmO8h/W3sLU46vmVrozw=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/marked-highlight/2.1.3/index.umd.min.js"
+			integrity="sha512-YHfFtx3BUUQ3Wk+kbZoqPDIxrgW0axUMM1KjVhsaeiQV36WJP1QP7np+tqTPIOU+6ev5BTGWR2IwcMjcPGuD+w=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+	</head>
+	<body>
+		<header class="main-header">
+			<button id="toggle-sidebar" class="toggle-sidebar">☰</button>
+			<h1>{{ .title }}</h1>
+		</header>
+		<div class="main-body">{{ template "content" . }}</div>
+
+		<!-- Scripts -->
+		<script src="/static/js/prism.js"></script>
+		<script src="/static/js/scripts.js"></script>
+	</body>
+</html>
+{{ end }}

@@ -1,12 +1,27 @@
-{{ range .chats }}
-<li data-chat-id="{{ .id }}">
-	<a href="#" hx-get="/chat/{{ .id }}" hx-target="#messages">{{ .title }}</a>
-	<button
+{{ define "partials/chat_list.html" }} {{ if .error }}
+<li class="error">{{ .error }}</li>
+{{ else }} {{ range .chats }}
+<li data-chat-id="{{ .id }}" class="chat-list-item">
+	<a
+		href="#"
+		hx-get="/chat/{{ .id }}"
+		hx-target="#messages"
+		class="chat-link"
+		hx-include="#messages"
+		hx-include="#message-form"
+	>
+		• Chat {{ .id }}
+	</a>
+	<a
 		hx-delete="/chat/{{ .id }}"
 		hx-target="closest li"
 		hx-swap="outerHTML"
+		hx-confirm="Are you sure you wish to delete this chat?"
+		class="delete-chat"
 	>
-		Delete
-	</button>
+		X
+	</a>
 </li>
-{{ end }}
+{{ else }}
+<li>No chats found.</li>
+{{ end }} {{ end }} {{ end }}

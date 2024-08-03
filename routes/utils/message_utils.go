@@ -3,7 +3,9 @@ package utils
 import (
 	"gochat/database"
 	"gochat/models"
-	"net/http"
+	"log"
+
+	// "net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +26,9 @@ If the chat ID is valid, it returns the parsed chat ID.
 	* `error` An error if the chat ID is not a valid integer.
 */
 func ParseAndValidateChatID(context *gin.Context) (int, error) {
-	return strconv.Atoi(context.Param("chat_id"))
+	chatID, err := strconv.Atoi(context.Param("chat_id"))
+	log.Println(chatID)
+	return chatID, err
 }
 
 /*
@@ -68,10 +72,10 @@ If there is an error, it returns an error.
 	* `*models.Message` The AI response message.
 	* `error` An error if the message is not saved successfully.
 */
-func SaveAIResponse(db *gorm.DB, chatID int, message string) (*models.Message, error) {
+func SaveAIResponse(db *gorm.DB, chatID int, userID int, message string) (*models.Message, error) {
 	aiResponse := &models.Message{
 		ChatID:      uint(chatID),
-		UserID:      1,
+		UserID:      uint(userID),
 		Message:     message,
 		MessageType: models.AIMessageType,
 	}
@@ -130,37 +134,4 @@ func FetchUpdatedChatHistory(db *gorm.DB, chatID int) ([]gin.H, error) {
 		}
 	}
 	return messages, nil
-}
-
-/*
-RespondBasedOnAcceptHeader conditionally responds with JSON or HTML based on the Accept header.
-
-If the Accept header is "text/html", it renders an HTML template with the messages.
-If the Accept header is not "text/html", it returns the messages as JSON.
-
-- Args:
-	* `context` (*gin.Context) The Gin context for the current HTTP request.
-	* `messages` ([]gin.H) A list of messages to respond with.
-	* `userMessage` (*models.Message) The user message to include in the response.
-	* `aiMessage` (*models.Message) The AI message to include in the response.
-*/
-func RespondBasedOnAcceptHeader(context *gin.Context, messages []gin.H, userMessage, aiMessage *models.Message) {
-	if context.GetHeader("Accept") == "text/html" {
-		context.HTML(http.StatusOK, "new_messages.html", gin.H{
-			"messages": []gin.H{
-				{
-					"id":          userMessage.ID,
-					"message":     userMessage.Message,
-					"messageType": userMessage.MessageType,
-				},
-				{
-					"id":          aiMessage.ID,
-					"message":     aiMessage.Message,
-					"messageType": aiMessage.MessageType,
-				},
-			},
-		})
-	} else {
-		context.JSON(http.StatusOK, gin.H{"messages": messages})
-	}
 }

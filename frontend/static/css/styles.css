@@ -306,6 +306,15 @@ main {
 	overflow-y: auto;
 }
 
+.chat-list-item {
+	display: flex;
+	align-items: center;
+}
+
+.chat-link {
+	margin-right: 2.5rem;
+}
+
 .toggle-theme-container {
 	padding: 1rem;
 	margin-bottom: 2rem;

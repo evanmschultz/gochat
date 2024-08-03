@@ -1,5 +1,10 @@
-{{ range .messages }}
-<div class="message {{ if eq .messageType "AI" }}ai-message{{ else }}user-message{{ end }}">
-    <p>{{ .message }}</p>
-</div>
+{{ define "partials/chat_history.html" }}
+
+    {{ range .messages }}
+    <div class="message {{ if eq .messageType "AI" }}ai-message{{ else }}user-message{{ end }}">
+        <p>{{ .message }}</p>
+    </div>
+    {{ end }}
+    <input type="hidden" id="current-chat-id" value="{{ .chatID }}" />
+    
 {{ end }}

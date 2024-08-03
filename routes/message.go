@@ -1,9 +1,14 @@
 package routes
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 
 	"gochat/database"
+	"gochat/models"
+
+	// "gochat/models"
 	"gochat/routes/utils"
 
 	"github.com/gin-gonic/gin"
@@ -21,55 +26,55 @@ func AddMessageRoutes(router *gin.Engine, db *gorm.DB) {
 	router.POST("/chat/:chat_id/message", func(context *gin.Context) { sendMessage(context, db) })
 }
 
-/*
-sendMessage adds a new message to the chat history.
 
-It expects a JSON payload in the request body containing the message details.
-The message is associated with the current user (hardcoded to user ID 1 for now).
-If the message is added successfully, the function returns the updated chat history.
-If there is an error, it returns an appropriate HTTP status code and error message.
-
-- Args:
-	* `context` (*gin.Context) The Gin context for the current HTTP request.
-	* `db` (*gorm.DB) The database connection.
-
-- Returns:
-	* `JSON` or `HTML` The updated chat history using the `RespondBasedOnAcceptHeader` function.
-	* `error` An error if the chat ID or message is invalid.
-*/
 func sendMessage(context *gin.Context, db *gorm.DB) {
-	chatID, err := utils.ParseAndValidateChatID(context)
+	userID := 1 // Default user ID
+	chatID, err := strconv.Atoi(context.Param("chat_id"))
+
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.HTML(http.StatusBadRequest, "partials/error.html", gin.H{"error": "Invalid chat ID"})
+		log.Println("error", err, "sendMessage: parse chatID, error block 1")
 		return
 	}
 
-	userMessage, err := utils.ParseAndValidateMessage(context, chatID)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var userMessage models.Message
+	if err := context.ShouldBind(&userMessage); err != nil {
+		context.HTML(http.StatusBadRequest, "partials/error.html", gin.H{"error": "Invalid input"})
+		log.Println("error", err, "sendMessage: bind userMessage, error block 2")
 		return
 	}
+	userMessage.ChatID = uint(chatID)
+	userMessage.UserID = uint(userID)// TODO: Replace with actual user authentication
+	userMessage.MessageType = models.UserMessageType
 
-	err = database.AddMessage(db, uint(chatID), userMessage)
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := database.AddMessage(db, uint(chatID), &userMessage); err != nil {
+		context.HTML(http.StatusInternalServerError, "partials/error.html", gin.H{"error": err.Error()})
+		log.Println("error", err, "sendMessage: add message, error block 3")
 		return
 	}
 
 	aiResponse := utils.GetAIResponse()
-	aiMessage, err := utils.SaveAIResponse(db, chatID, aiResponse)
+	aiMessage, err := utils.SaveAIResponse(db, chatID, userID, aiResponse)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("error", err, "sendMessage: save AI response, error block 4")
 		return
 	}
 
-	messages, err := utils.FetchUpdatedChatHistory(db, chatID)
-	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{"error": "Chat not found"})
-		return
-	}
-
-	utils.RespondBasedOnAcceptHeader(context, messages, userMessage, aiMessage)
+	context.HTML(http.StatusOK, "components/message.html", gin.H{
+		"messages": []gin.H{
+			{
+				"id":          userMessage.ID,
+				"message":     userMessage.Message,
+				"messageType": userMessage.MessageType,
+			},
+			{
+				"id":          aiMessage.ID,
+				"message":     aiMessage.Message,
+				"messageType": aiMessage.MessageType,
+			},
+		},
+	})
 }
 
 

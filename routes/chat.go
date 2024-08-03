@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 
 	"gochat/database"
@@ -23,34 +24,36 @@ func AddChatRoutes(router *gin.Engine, db *gorm.DB) {
     router.GET("/chat/:chat_id", func(context *gin.Context) { getChatHistory(context, db) })
     router.DELETE("/chat/:chat_id", func(context *gin.Context) { deleteChat(context, db) })
     router.GET("/user/chats", func(context *gin.Context) { getAllChatsForUser(context, db) })
+
+    // HTMX routes
+    // router.POST("/chat/htmx", func(context *gin.Context) { createChatHtmx(context, db) })
 }
 
 /*
-createChat creates a new chat in the database.
+createChatHtmx creates a new chat in the database and returns the chat item as HTML.
 
-It expects a JSON payload in the request body containing the chat details.
+It is used for HTMX requests to create a chat without a full page reload.
 The chat is associated with the current user (hardcoded to user ID 1 for now).
-If the chat is created successfully, the function returns the chat ID and title.
-If there is an error, it returns an appropriate HTTP status code and error message.
+If the chat is created successfully, it returns the chat item as HTML.
+If there is an error, it returns an error message.
 
 - Args:
     * `context` (*gin.Context) The Gin context for the current HTTP request.
     * `db` (*gorm.DB) The database connection.
 */
 func createChat(context *gin.Context, db *gorm.DB) {
-    var chat models.Chat
-    if err := context.ShouldBindJSON(&chat); err != nil {
-        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-        return
-    }
+	var chat models.Chat
+	chat.UserID = 1 // TODO: Replace with actual user authentication
 
-    chat.UserID = 1
-    if err := database.AddChat(db, &chat); err != nil {
-        context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create chat"})
-        return
-    }
+	if err := database.AddChat(db, &chat); err != nil {
+		context.HTML(http.StatusInternalServerError, "partials/error.html", gin.H{"error": "Failed to create chat"})
+		return
+	}
 
-    context.JSON(http.StatusOK, gin.H{"id": chat.ID, "title": "Chat " + strconv.Itoa(int(chat.ID))})
+	context.HTML(http.StatusOK, "components/chat_item.html", gin.H{
+		"id":    chat.ID,
+		"title": "Chat " + strconv.Itoa(int(chat.ID)),
+	})
 }
 
 /*
@@ -91,13 +94,11 @@ func getChatHistory(context *gin.Context, db *gorm.DB) {
         })
     }
 
-    if context.GetHeader("Accept") == "text/html" {
-		context.HTML(http.StatusOK, "chat_history.html", gin.H{
-			"messages": messages,
-		})
-	} else {
-		context.JSON(http.StatusOK, gin.H{"messages": messages})
-	}
+    context.HTML(http.StatusOK, "partials/chat_history.html", gin.H{
+        "messages": messages,
+        "chatID":   chatID,
+    })
+    context.HTML(http.StatusOK, "components/input_form.html", gin.H{"chatID": chatID, "title": "GoChat",})
 }
 
 /*
@@ -118,12 +119,16 @@ If there is an error, it returns an appropriate HTTP status code and error messa
 */
 func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
     userID := 1
-
     chats, err := database.GetAllChatsForUser(db, uint(userID))
     if err != nil {
-        context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve chats"})
+        context.HTML(http.StatusInternalServerError, "partials/chat_list.html", gin.H{"error": "Failed to retrieve chats"})
         return
     }
+
+    // Sort chats in descending order of ID
+    sort.Slice(chats, func(i, j int) bool {
+        return chats[i].ID > chats[j].ID
+    })
 
     var chatList []gin.H
     for _, chat := range chats {
@@ -133,13 +138,9 @@ func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
         })
     }
 
-    if context.GetHeader("Accept") == "text/html" {
-		context.HTML(http.StatusOK, "chat_list.html", gin.H{
-			"chats": chatList,
-		})
-	} else {
-		context.JSON(http.StatusOK, gin.H{"chats": chatList})
-	}
+    context.HTML(http.StatusOK, "partials/chat_list.html", gin.H{
+        "chats": chatList,
+    })
 }
 
 /*
@@ -169,3 +170,4 @@ func deleteChat(context *gin.Context, db *gorm.DB) {
 
     context.JSON(http.StatusOK, gin.H{"status": "chat deleted"})
 }
+

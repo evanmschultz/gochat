@@ -1,3 +1,41 @@
+// package main
+
+// import (
+// 	"gochat/database"
+// 	"gochat/routes"
+// 	"html/template"
+
+// 	"github.com/gin-gonic/gin"
+// )
+
+// /*
+// main is the entry point for the application.
+
+// It initializes the database connection, sets up the Gin router, and starts the server on port 8080.
+// */
+// func main() {
+//     db := database.InitDB("test.db")
+
+//     router := routes.SetupRouter(db)
+
+//     // Load HTML templates
+//     templ := template.Must(template.ParseGlob("frontend/templates/**/*"))
+//     router.SetHTMLTemplate(templ)
+
+//     // Serve static files
+//     router.Static("/static", "./frontend/static")
+
+//     // Serve index.html as the main entry point
+//     router.GET("/", func(c *gin.Context) {
+//         c.HTML(200, "pages/index", gin.H{
+//             "title": "GoChat",
+//         })
+//     })
+
+//     // Start the server on port 8080
+//     router.Run(":8080")
+// }
+
 package main
 
 import (
@@ -7,11 +45,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/*
-main is the entry point for the application.
-
-It initializes the database connection, sets up the Gin router, and starts the server on port 8080.
-*/
 func main() {
     db := database.InitDB("test.db")
 
@@ -24,8 +57,8 @@ func main() {
     router.Static("/static", "./frontend/static")
 
     // Serve index.html as the main entry point
-    router.GET("/", func(c *gin.Context) {
-        c.HTML(200, "pages/index.html", gin.H{
+    router.GET("/", func(context *gin.Context) {
+        context.HTML(200, "index.html", gin.H{
             "title": "GoChat",
         })
     })

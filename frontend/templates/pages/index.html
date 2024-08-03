@@ -1,93 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-		/>
-		<title>GoChat</title>
-		<link
-			href="//fonts.googleapis.com/css?family=Raleway:400,300,600"
-			rel="stylesheet"
-			type="text/css"
-		/>
-		<link rel="stylesheet" href="/static/css/normalize.css" />
-		<link rel="icon" type="image/png" href="/static/assets/Phi_lc.svg" />
-		<link rel="stylesheet" href="/static/css/prism-atom-dark.css" />
-		<link rel="stylesheet" href="/static/css/styles.css" />
-		<script
-			src="https://unpkg.com/htmx.org@1.9.12"
-			integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/"
-			crossorigin="anonymous"
-		></script>
-	</head>
-	<body>
-		<header class="main-header">
-			<button id="toggle-sidebar" class="toggle-sidebar">☰</button>
-			<h1>GoChat</h1>
-		</header>
-		<div class="main-body">
-			<!-- Sidebar -->
-			<aside class="sidebar" id="sidebar">
-				<div class="sidebar-contents-container">
-					<div class="chat-selection-container">
-						<div class="sidebar-header-container">
-							<a href="#" id="create-new-chat">
-								<h2>+New Chat</h2>
-							</a>
-						</div>
-						<ul id="chat-list" class="chat-list">
-							<!-- Chat items will be appended here -->
-						</ul>
-					</div>
-					<div class="toggle-theme-container">
-						<!-- <button id="toggle-theme" class="toggle-theme">
-							Toggle Theme
-						</button> -->
-						<label for="toggle-theme" id="toggle-theme-label"
-							>Light Mode</label
-						>
-						<input
-							type="checkbox"
-							role="switch"
-							id="toggle-theme"
-						/>
-					</div>
-				</div>
-			</aside>
-
-			<!-- Main Chat Window -->
-			<main class="chat-container">
-				<div id="messages" class="chat-messages">
-					<!-- Messages will be appended here -->
-				</div>
-
-				<!-- Fixed bottom container for input form -->
-				<div class="fixed-bottom-container">
-					<form method="post" class="input-form">
-						<input type="hidden" id="chat-id" name="chat_id" />
-						<textarea
-							id="message-input"
-							name="chat-input"
-							class="chat-input"
-							placeholder="Type your query here..."
-						></textarea>
-						<button
-							id="send-message-btn"
-							class="send-message-btn"
-							type="submit"
-							aria-label="Send message"
-						>
-							<strong>&#8593;</strong>
-						</button>
-					</form>
-				</div>
-			</main>
+{{ define "content" }}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+	<div class="sidebar-contents-container">
+		<div class="chat-selection-container">
+			<div class="sidebar-header-container">
+				<a
+					href="#"
+					hx-post="/chat"
+					hx-target="#chat-list, #messages, #fixed-bottom-container"
+					hx-swap="beforeend"
+				>
+					<h2>+New Chat</h2>
+				</a>
+			</div>
+			<ul
+				id="chat-list"
+				class="chat-list"
+				hx-get="/user/chats"
+				hx-trigger="load"
+				hx-target="this"
+				hx-swap="innerHTML"
+			>
+				>
+				<!-- Chat items will be loaded here -->
+			</ul>
 		</div>
+		<div class="toggle-theme-container">
+			<label for="toggle-theme" id="toggle-theme-label">Light Mode</label>
+			<input type="checkbox" role="switch" id="toggle-theme" />
+		</div>
+	</div>
+</aside>
 
-		<!-- Scripts -->
-		<script src="/static/js/prism.js"></script>
-		<script src="/static/js/scripts.js"></script>
-	</body>
-</html>
+<!-- Main Chat Window -->
+<main class="chat-container">
+	<div id="messages" class="chat-messages" data-chat-id="">
+		<!-- Messages will be loaded here -->
+	</div>
+
+	<!-- Fixed bottom container for input form -->
+	<div id="fixed-bottom-container" class="fixed-bottom-container">
+		<!-- Input Form -->
+	</div>
+</main>
+{{ end }} {{ define "index.html" }} {{ template "base" . }} {{ end }}

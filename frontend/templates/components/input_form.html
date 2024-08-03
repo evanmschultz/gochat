@@ -1,0 +1,30 @@
+{{ define "components/input_form.html" }}
+<div
+	id="fixed-bottom-container"
+	class="fixed-bottom-container"
+	hx-swap-oob="true"
+>
+	<form
+		id="message-form"
+		hx-post="/chat/{{ .chatID }}/message"
+		hx-target="#messages"
+		hx-swap="beforeend"
+		class="input-form"
+	>
+		<textarea
+			id="message-input"
+			name="Message"
+			class="chat-input"
+			placeholder="Type your query here..."
+		></textarea>
+		<button
+			id="send-message-btn"
+			class="send-message-btn"
+			type="submit"
+			aria-label="Send message"
+		>
+			<strong>&#8593;</strong>
+		</button>
+	</form>
+</div>
+{{ end }}
