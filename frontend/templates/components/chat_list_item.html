@@ -1,6 +1,4 @@
-{{ define "partials/chat_list.html" }} {{ if .error }}
-<li class="error">{{ .error }}</li>
-{{ else }} {{ range .chats }}
+{{ define "chat_list_item" }}
 <li data-chat-id="{{ .id }}" class="chat-list-item">
 	<a
 		href="#"
@@ -22,6 +20,4 @@
 		X
 	</a>
 </li>
-{{ else }}
-<li>No chats found.</li>
-{{ end }} {{ end }} {{ end }}
+{{ end }}

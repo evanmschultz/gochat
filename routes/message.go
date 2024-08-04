@@ -7,8 +7,6 @@ import (
 
 	"gochat/database"
 	"gochat/models"
-
-	// "gochat/models"
 	"gochat/routes/utils"
 
 	"github.com/gin-gonic/gin"
@@ -26,20 +24,34 @@ func AddMessageRoutes(router *gin.Engine, db *gorm.DB) {
 	router.POST("/chat/:chat_id/message", func(context *gin.Context) { sendMessage(context, db) })
 }
 
+/*
+sendMessage sends a message to the chat with the given chat ID.
 
+It parses the chat ID from the request URL and the message from the request body.
+It adds the message to the database and returns the updated chat history as HTML.
+If there is an error, it returns an error message.
+
+- Args:
+	* `context` (*gin.Context) The Gin context for the current HTTP request.
+	* `db` (*gorm.DB) The database connection.
+
+- Returns:
+	* `HTML` The user and ai message as HTML.
+	* `error` An error if the chat ID is not a valid integer.
+*/
 func sendMessage(context *gin.Context, db *gorm.DB) {
 	userID := 1 // Default user ID
 	chatID, err := strconv.Atoi(context.Param("chat_id"))
 
 	if err != nil {
-		context.HTML(http.StatusBadRequest, "partials/error.html", gin.H{"error": "Invalid chat ID"})
+		context.HTML(http.StatusBadRequest, "error_template", gin.H{"error": "Invalid chat ID"})
 		log.Println("error", err, "sendMessage: parse chatID, error block 1")
 		return
 	}
 
 	var userMessage models.Message
 	if err := context.ShouldBind(&userMessage); err != nil {
-		context.HTML(http.StatusBadRequest, "partials/error.html", gin.H{"error": "Invalid input"})
+		context.HTML(http.StatusBadRequest, "error_template", gin.H{"error": "Invalid input"})
 		log.Println("error", err, "sendMessage: bind userMessage, error block 2")
 		return
 	}
@@ -48,7 +60,7 @@ func sendMessage(context *gin.Context, db *gorm.DB) {
 	userMessage.MessageType = models.UserMessageType
 
 	if err := database.AddMessage(db, uint(chatID), &userMessage); err != nil {
-		context.HTML(http.StatusInternalServerError, "partials/error.html", gin.H{"error": err.Error()})
+		context.HTML(http.StatusInternalServerError, "error_template", gin.H{"error": err.Error()})
 		log.Println("error", err, "sendMessage: add message, error block 3")
 		return
 	}
@@ -61,20 +73,18 @@ func sendMessage(context *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	context.HTML(http.StatusOK, "components/message.html", gin.H{
-		"messages": []gin.H{
-			{
+	context.HTML(http.StatusOK, "message", 
+		gin.H{
 				"id":          userMessage.ID,
 				"message":     userMessage.Message,
 				"messageType": userMessage.MessageType,
-			},
-			{
+		
+		})
+	context.HTML(http.StatusOK, "message", gin.H{
 				"id":          aiMessage.ID,
 				"message":     aiMessage.Message,
 				"messageType": aiMessage.MessageType,
-			},
-		},
-	})
+			})
 }
 
 

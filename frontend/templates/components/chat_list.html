@@ -1,0 +1,5 @@
+{{ define "chat_list" }} {{ if .error }}
+<li class="error">{{ .error }}</li>
+{{ else }} {{ range .chats }} {{ template "chat_list_item" . }} {{ else }}
+<li>No chats</li>
+{{ end }} {{ end }} {{ end }}

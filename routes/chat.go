@@ -46,11 +46,11 @@ func createChat(context *gin.Context, db *gorm.DB) {
 	chat.UserID = 1 // TODO: Replace with actual user authentication
 
 	if err := database.AddChat(db, &chat); err != nil {
-		context.HTML(http.StatusInternalServerError, "partials/error.html", gin.H{"error": "Failed to create chat"})
+		context.HTML(http.StatusInternalServerError, "error_template", gin.H{"error": "Failed to create chat"})
 		return
 	}
 
-	context.HTML(http.StatusOK, "components/chat_item.html", gin.H{
+	context.HTML(http.StatusOK, "chat_list_item", gin.H{
 		"id":    chat.ID,
 		"title": "Chat " + strconv.Itoa(int(chat.ID)),
 	})
@@ -98,7 +98,7 @@ func getChatHistory(context *gin.Context, db *gorm.DB) {
         "messages": messages,
         "chatID":   chatID,
     })
-    context.HTML(http.StatusOK, "components/input_form.html", gin.H{"chatID": chatID, "title": "GoChat",})
+    context.HTML(http.StatusOK, "input_form", gin.H{"chatID": chatID})
 }
 
 /*
@@ -138,7 +138,7 @@ func getAllChatsForUser(context *gin.Context, db *gorm.DB) {
         })
     }
 
-    context.HTML(http.StatusOK, "partials/chat_list.html", gin.H{
+    context.HTML(http.StatusOK, "chat_list", gin.H{
         "chats": chatList,
     })
 }
@@ -168,6 +168,6 @@ func deleteChat(context *gin.Context, db *gorm.DB) {
         return
     }
 
-    context.JSON(http.StatusOK, gin.H{"status": "chat deleted"})
+    context.Status(http.StatusOK)
 }
 

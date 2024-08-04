@@ -86,6 +86,7 @@ h6 {
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 a {
 	color: var(--text-color);
+	text-decoration: none;
 }
 
 a:hover {
@@ -279,6 +280,10 @@ main {
 
 .sidebar.closed {
 	margin-left: -250px;
+}
+
+.new-chat-link {
+	text-decoration: underline;
 }
 
 .sidebar-contents-container {

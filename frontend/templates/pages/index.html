@@ -9,6 +9,7 @@
 					hx-post="/chat"
 					hx-target="#chat-list, #messages, #fixed-bottom-container"
 					hx-swap="beforeend"
+					class="new-chat-link"
 				>
 					<h2>+New Chat</h2>
 				</a>
@@ -23,12 +24,10 @@
 			>
 				>
 				<!-- Chat items will be loaded here -->
+				{{ template "chat_list" . }}
 			</ul>
 		</div>
-		<div class="toggle-theme-container">
-			<label for="toggle-theme" id="toggle-theme-label">Light Mode</label>
-			<input type="checkbox" role="switch" id="toggle-theme" />
-		</div>
+		{{ template "toggle_theme" . }}
 	</div>
 </aside>
 
@@ -41,6 +40,7 @@
 	<!-- Fixed bottom container for input form -->
 	<div id="fixed-bottom-container" class="fixed-bottom-container">
 		<!-- Input Form -->
+		<!-- {{ template "input_form" }} -->
 	</div>
 </main>
-{{ end }} {{ define "index.html" }} {{ template "base" . }} {{ end }}
+{{ end }} {{ define "index" }} {{ template "base" . }} {{ end }}
