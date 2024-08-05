@@ -164,6 +164,10 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+# Dist folder for typescript
+/frontend/dist
+*.js.map
+
 # End of https://www.toptal.com/developers/gitignore/api/node,go
 
 # ignore db files

@@ -1,0 +1,22 @@
+{
+	"name": "frontend",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc -w",
+		"start": "npm run watch"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"devDependencies": {
+		"@types/prismjs": "^1.26.4",
+		"typescript": "^5.5.4"
+	},
+	"dependencies": {
+		"htmx.org": "^2.0.1",
+		"prismjs": "^1.29.0"
+	}
+}

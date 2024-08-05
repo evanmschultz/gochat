@@ -94,7 +94,7 @@ func getChatHistory(context *gin.Context, db *gorm.DB) {
         })
     }
 
-    context.HTML(http.StatusOK, "partials/chat_history.html", gin.H{
+    context.HTML(http.StatusOK, "chat_window", gin.H{
         "messages": messages,
         "chatID":   chatID,
     })

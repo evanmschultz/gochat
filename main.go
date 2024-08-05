@@ -15,8 +15,12 @@ func main() {
     // Load HTML templates
     router.LoadHTMLGlob("frontend/templates/**/*")
 
+    // // Serve static files
+    // router.Static("/static", "./frontend/static")
+
     // Serve static files
-    router.Static("/static", "./frontend/static")
+    router.Static("/static", "./frontend/static") // Serve CSS and other static files
+    router.Static("/dist", "./frontend/dist")     // Serve JS files
 
     // Serve index.html as the main entry point
     router.GET("/", func(context *gin.Context) {
