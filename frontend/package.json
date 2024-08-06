@@ -4,7 +4,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "tsc",
-		"watch": "tsc -w",
+		"watch": "npx tsc -w",
 		"start": "npm run watch"
 	},
 	"keywords": [],
