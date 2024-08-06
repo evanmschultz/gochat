@@ -1,26 +1,27 @@
 // import 'htmx.org';
 // import Prism from 'prismjs';
-function isTablet(navigator: Navigator) {
-	const hasTouchScreen =
-		'ontouchstart' in window || navigator.maxTouchPoints > 0;
-	const isMediumScreen = window.matchMedia(
-		'(min-width: 768px) and (max-width: 1024px)'
-	).matches;
+// function isTablet(navigator: Navigator) {
+// 	const hasTouchScreen =
+// 		'ontouchstart' in window || navigator.maxTouchPoints > 0;
+// 	const isMediumScreen = window.matchMedia(
+// 		'(min-width: 768px) and (max-width: 1024px)'
+// 	).matches;
 
-	return hasTouchScreen && isMediumScreen;
-}
+// 	return hasTouchScreen && isMediumScreen;
+// }
 
-function isPhone(navigator: Navigator) {
-	const hasTouchScreen =
-		'ontouchstart' in window || navigator.maxTouchPoints > 0;
-	const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
+// function isPhone(navigator: Navigator) {
+// 	const hasTouchScreen =
+// 		'ontouchstart' in window || navigator.maxTouchPoints > 0;
+// 	const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
 
-	return hasTouchScreen && isSmallScreen;
-}
+// 	return hasTouchScreen && isSmallScreen;
+// }
 
-function isMobile(navigator: Navigator) {
-	return isTablet(navigator) || isPhone(navigator);
-}
+// function isMobile(navigator: Navigator) {
+// 	return isTablet(navigator) || isPhone(navigator);
+// }
+import { isMobile } from './utils.js';
 
 function toggleTheme(toggleThemeLabel: HTMLElement): void {
 	console.log('toggleTheme');
@@ -58,49 +59,49 @@ function closeSidebarOnOutsideClick(
 	}
 }
 
-function formatCodeBlocks(inputString: string): string {
-	console.log('formatCodeBlocks');
-	if (!inputString) return '';
+// function formatCodeBlocks(inputString: string): string {
+// 	console.log('formatCodeBlocks');
+// 	if (!inputString) return '';
 
-	// Highlight code blocks
-	let formattedString = inputString.replace(
-		/```(\w+)?\n([\s\S]*?)```/gm,
-		function (match: string, lang: string, code: string) {
-			try {
-				const highlightedCode =
-					lang && Prism.languages[lang]
-						? Prism.highlight(code, Prism.languages[lang], lang)
-						: Prism.highlight(code, Prism.languages.plain, 'plain');
-				return `<pre style="margin: 1.5rem"><code class="language-${
-					lang || 'plain'
-				}">${highlightedCode}</code></pre>`;
-			} catch (error) {
-				console.error('Error highlighting code:', error);
-				return `<pre><code class="language-${
-					lang || 'plain'
-				}">${code}</code></pre>`;
-			}
-		}
-	);
+// 	// Highlight code blocks
+// 	let formattedString = inputString.replace(
+// 		/```(\w+)?\n([\s\S]*?)```/gm,
+// 		function (match: string, lang: string, code: string) {
+// 			try {
+// 				const highlightedCode =
+// 					lang && Prism.languages[lang]
+// 						? Prism.highlight(code, Prism.languages[lang], lang)
+// 						: Prism.highlight(code, Prism.languages.plain, 'plain');
+// 				return `<pre style="margin: 1.5rem"><code class="language-${
+// 					lang || 'plain'
+// 				}">${highlightedCode}</code></pre>`;
+// 			} catch (error) {
+// 				console.error('Error highlighting code:', error);
+// 				return `<pre><code class="language-${
+// 					lang || 'plain'
+// 				}">${code}</code></pre>`;
+// 			}
+// 		}
+// 	);
 
-	// Highlight inline code blocks
-	formattedString = formattedString.replace(/`([^`]+)`/gm, '<code>$1</code>');
-	return formattedString;
-}
+// 	// Highlight inline code blocks
+// 	formattedString = formattedString.replace(/`([^`]+)`/gm, '<code>$1</code>');
+// 	return formattedString;
+// }
 
 function updateSelectedChat(chatId: string): void {
-	const messagesElement = document.getElementById('messages');
-	const currentChatIdElement = document.getElementById(
-		'current-chat-id'
-	) as HTMLInputElement;
+	// const messagesElement = document.getElementById('messages');
+	// const currentChatIdElement = document.getElementById(
+	// 	'current-chat-id'
+	// ) as HTMLInputElement;
 
-	if (messagesElement) {
-		messagesElement.setAttribute('data-chat-id', chatId);
-	}
+	// if (messagesElement) {
+	// 	messagesElement.setAttribute('data-chat-id', chatId);
+	// }
 
-	if (currentChatIdElement) {
-		currentChatIdElement.value = chatId;
-	}
+	// if (currentChatIdElement) {
+	// 	currentChatIdElement.value = chatId;
+	// }
 
 	document.querySelectorAll('#chat-list li').forEach((li) => {
 		li.classList.remove('selected');
@@ -159,17 +160,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
-	document.body.addEventListener('htmx:afterSwap', (event) => {
-		const customEvent = event as CustomEvent;
-		const target = customEvent.detail.target as HTMLElement;
-		if (target.id === 'messages') {
-			const newMessages = target.querySelectorAll('.message p');
-			newMessages.forEach((message: Element) => {
-				if (message instanceof HTMLElement) {
-					message.innerHTML = formatCodeBlocks(message.innerHTML);
-				}
-			});
-			Prism.highlightAllUnder(target);
-		}
-	});
+	const messagesDiv = document.getElementById('messages');
+	messagesDiv?.hidden.valueOf;
+
+	// document.body.addEventListener('htmx:afterSwap', (event) => {
+	// 	const customEvent = event as CustomEvent;
+	// 	const target = customEvent.detail.target as HTMLElement;
+	// 	if (target.id === 'messages') {
+	// 		const newMessages = target.querySelectorAll('.message p');
+	// 		newMessages.forEach((message: Element) => {
+	// 			if (message instanceof HTMLElement) {
+	// 				message.innerHTML = formatCodeBlocks(message.innerHTML);
+	// 			}
+	// 		});
+	// 		Prism.highlightAllUnder(target);
+	// 	}
+	// });
 });

@@ -219,6 +219,10 @@ li {
 	margin-bottom: 1rem;
 }
 
+.selected {
+	color: var(--link-hover-color);
+}
+
 /* Layout
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 body {

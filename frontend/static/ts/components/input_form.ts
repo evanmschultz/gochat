@@ -1,25 +1,5 @@
-import 'htmx.org';
-function isTablet(navigator: Navigator) {
-	const hasTouchScreen =
-		'ontouchstart' in window || navigator.maxTouchPoints > 0;
-	const isMediumScreen = window.matchMedia(
-		'(min-width: 768px) and (max-width: 1024px)'
-	).matches;
-
-	return hasTouchScreen && isMediumScreen;
-}
-
-function isPhone(navigator: Navigator) {
-	const hasTouchScreen =
-		'ontouchstart' in window || navigator.maxTouchPoints > 0;
-	const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
-
-	return hasTouchScreen && isSmallScreen;
-}
-
-export function isMobile(navigator: Navigator) {
-	return isTablet(navigator) || isPhone(navigator);
-}
+import { isMobile } from '../utils.js';
+declare const htmx: any;
 
 function handleMessageInputKeydown(event: KeyboardEvent): void {
 	const deviceIsMobile: boolean = isMobile(navigator);
@@ -57,3 +37,26 @@ document.addEventListener('keydown', function (event: KeyboardEvent) {
 		handleMessageInputKeydown(event);
 	}
 });
+
+const selectedChatID =
+	(document.getElementById('current-chat-id') as HTMLInputElement)?.value ||
+	'0';
+// const chat_list = document.getElementById('sidebar-chat-list');
+const chats = document.querySelectorAll('.chat-list-item');
+
+if (chats) {
+	chats.forEach((chat) => {
+		const chatElement = chat as HTMLElement; // Type assertion
+		const anchorTags = chatElement.querySelectorAll('a'); // Select all anchor tags inside the chat element
+
+		// Remove 'selected' class from the list item and its anchor tags
+		chatElement.classList.remove('selected');
+		anchorTags.forEach((anchor) => anchor.classList.remove('selected'));
+
+		if (chatElement.dataset.chatId === selectedChatID) {
+			console.log('Selected chat:', selectedChatID);
+			chatElement.classList.add('selected');
+			anchorTags.forEach((anchor) => anchor.classList.add('selected'));
+		}
+	});
+}

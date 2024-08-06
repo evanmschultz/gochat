@@ -99,6 +99,7 @@ func getChatHistory(context *gin.Context, db *gorm.DB) {
         "chatID":   chatID,
     })
     context.HTML(http.StatusOK, "input_form", gin.H{"chatID": chatID})
+    // context.HTML(http.StatusOK, "chat_list", gin.H{"id": chatID, "selected": true})
 }
 
 /*
